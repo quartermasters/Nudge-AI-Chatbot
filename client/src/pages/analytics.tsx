@@ -1,3 +1,36 @@
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
+import { TrendingUp, Calendar, Download } from 'lucide-react';
+
+// Mock data for conversation trends
+const conversationTrendsData = [
+  { date: 'Jan 1', conversations: 120, deflected: 48 },
+  { date: 'Jan 2', conversations: 135, deflected: 54 },
+  { date: 'Jan 3', conversations: 89, deflected: 38 },
+  { date: 'Jan 4', conversations: 156, deflected: 67 },
+  { date: 'Jan 5', conversations: 203, deflected: 89 },
+  { date: 'Jan 6', conversations: 178, deflected: 76 },
+  { date: 'Jan 7', conversations: 195, deflected: 83 },
+  { date: 'Jan 8', conversations: 167, deflected: 71 },
+  { date: 'Jan 9', conversations: 189, deflected: 81 },
+  { date: 'Jan 10', conversations: 212, deflected: 91 },
+  { date: 'Jan 11', conversations: 234, deflected: 102 },
+  { date: 'Jan 12', conversations: 198, deflected: 84 },
+  { date: 'Jan 13', conversations: 176, deflected: 75 },
+  { date: 'Jan 14', conversations: 223, deflected: 96 }
+];
+
+// Mock data for intent distribution
+const intentDistributionData = [
+  { name: 'Product Q&A', value: 35, count: 4523, color: '#8884d8' },
+  { name: 'Order Status', value: 25, count: 3201, color: '#82ca9d' },
+  { name: 'Returns/Refunds', value: 16, count: 2103, color: '#ffc658' },
+  { name: 'Size Guide', value: 14, count: 1820, color: '#ff7300' },
+  { name: 'General Inquiry', value: 10, count: 1200, color: '#00ff88' }
+];
+
+// Colors for pie chart
+const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff88'];
+
 export default function Analytics() {
   return (
     <div className="min-h-screen" data-testid="analytics-page">
@@ -17,8 +50,9 @@ export default function Analytics() {
               <option>Last 90 days</option>
               <option>Custom range</option>
             </select>
-            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90" data-testid="button-export-analytics">
-              Export Report
+            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 flex items-center space-x-2" data-testid="button-export-analytics">
+              <Download className="w-4 h-4" />
+              <span>Export Report</span>
             </button>
           </div>
         </div>
@@ -54,22 +88,103 @@ export default function Analytics() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" data-testid="analytics-charts">
           {/* Conversation Trends */}
           <div className="bg-card rounded-lg border border-border p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4" data-testid="chart-conversation-trends">Conversation Trends</h3>
-            <div className="h-80 flex items-center justify-center bg-muted rounded-lg">
-              <div className="text-center">
-                <i className="fas fa-chart-line text-4xl text-muted-foreground mb-2"></i>
-                <p className="text-muted-foreground">Line chart showing daily conversation volume</p>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground" data-testid="chart-conversation-trends">Conversation Trends</h3>
+              <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                <TrendingUp className="w-3 h-3" />
+                <span>Last 14 days</span>
               </div>
+            </div>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={conversationTrendsData}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={{ fontSize: 12 }}
+                    tickLine={{ stroke: '#e5e7eb' }}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12 }}
+                    tickLine={{ stroke: '#e5e7eb' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      fontSize: '12px'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="conversations" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                    name="Total Conversations"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="deflected" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                    name="Deflected"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
           {/* Intent Distribution */}
           <div className="bg-card rounded-lg border border-border p-6">
             <h3 className="text-lg font-semibold text-foreground mb-4" data-testid="chart-intent-distribution">Intent Distribution</h3>
-            <div className="h-80 flex items-center justify-center bg-muted rounded-lg">
-              <div className="text-center">
-                <i className="fas fa-chart-pie text-4xl text-muted-foreground mb-2"></i>
-                <p className="text-muted-foreground">Pie chart showing conversation intents</p>
+            <div className="h-80 flex">
+              <div className="flex-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={intentDistributionData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={120}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {intentDistributionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: any, name: any, props: any) => [
+                        `${value}% (${props.payload.count} conversations)`,
+                        props.payload.name
+                      ]}
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))', 
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="w-40 flex flex-col justify-center space-y-2">
+                {intentDistributionData.map((entry, index) => (
+                  <div key={entry.name} className="flex items-center space-x-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: COLORS[index] }}
+                    ></div>
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-foreground">{entry.name}</p>
+                      <p className="text-xs text-muted-foreground">{entry.value}% ({entry.count})</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
