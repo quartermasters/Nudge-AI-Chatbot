@@ -28,7 +28,7 @@ export default function ChatWidgetPage() {
                 <textarea 
                   className="w-full mt-1 px-3 py-2 border border-border rounded-md text-sm bg-background"
                   rows={3}
-                  defaultValue="Hi! I'm your AI shopping assistant. How can I help you today?"
+                  defaultValue="Hi! I'm your AI shopping assistant Developed by Quartermasters. How can I help you today?"
                   data-testid="input-welcome-message"
                 />
               </div>
@@ -74,7 +74,7 @@ export default function ChatWidgetPage() {
                     <i className="fas fa-robot text-primary-foreground text-xs"></i>
                   </div>
                   <div className="bg-muted rounded-lg p-2 max-w-[200px]">
-                    <p className="text-xs">Hi! I'm your AI shopping assistant. How can I help you today?</p>
+                    <p className="text-xs">Hi! I'm your AI shopping assistant Developed by Quartermasters. How can I help you today?</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-2 justify-end">

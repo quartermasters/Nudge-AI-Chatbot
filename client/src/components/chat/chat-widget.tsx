@@ -16,7 +16,7 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! I'm your AI shopping assistant. How can I help you today?",
+      content: "Hi! I'm your AI shopping assistant Developed by Quartermasters. How can I help you today?",
       timestamp: new Date().toISOString()
     }
   ]);
