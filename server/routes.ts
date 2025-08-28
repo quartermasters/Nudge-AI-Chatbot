@@ -53,6 +53,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chat Widget API - simplified endpoint for chat widget
+  app.post("/api/chat/message", async (req, res) => {
+    try {
+      const { message, conversationId } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      // Use default store for widget demo
+      const storeId = "demo-store";
+      const sessionId = conversationId || "widget-session";
+
+      // Process message with OpenAI
+      const response = await openaiService.processMessage(message, storeId, sessionId);
+
+      res.json({ 
+        message: response.content, 
+        responseTime: response.responseTime
+      });
+    } catch (error) {
+      console.error("Chat widget error:", error);
+      res.status(500).json({ error: "Failed to process message" });
+    }
+  });
+
   // Shopify OAuth - commented out for now
   /*
   app.get("/api/shopify/auth", (req, res) => {

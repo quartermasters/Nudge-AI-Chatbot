@@ -27,40 +27,32 @@ class OpenAIService {
         messages: [
           {
             role: "system",
-            content: `You are Nudge, an AI e-commerce assistant. Be concise, helpful, and conversion-minded. Use only provided data. If unsure, escalate.
-            
-Available tools:
-- get_product: Search for product information
-- get_order_status: Look up order by email and order ID  
-- get_policy: Get shipping, returns, or warranty policies
-- recommend_products: Get product recommendations
+            content: `You are Nudge, an AI e-commerce assistant for an online store. Be helpful, friendly, and professional. Answer customer questions about products, orders, shipping, and policies. Keep responses concise and conversational.
 
-Respond in JSON format with: { "content": "your response", "tool_calls": [{"name": "tool_name", "arguments": {...}}], "needs_escalation": boolean }`
+If customers ask about:
+- Products: Provide helpful product information and recommendations
+- Orders: Help with order status, tracking, and related questions
+- Policies: Share shipping, return, and warranty information
+- General questions: Answer helpfully or direct to appropriate resources
+
+Always be positive and try to help the customer find what they're looking for.`
           },
           {
             role: "user", 
             content: message
           }
         ],
-        response_format: { type: "json_object" },
-        max_tokens: 500
+        max_tokens: 300
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{}');
+      const content = response.choices[0].message.content || "I'm sorry, I couldn't process your request. Please try again.";
       const responseTime = Date.now() - startTime;
-      
-      // Process any tool calls
-      if (result.tool_calls?.length > 0) {
-        for (const toolCall of result.tool_calls) {
-          await this.executeTool(toolCall, storeId);
-        }
-      }
 
       return {
-        content: result.content || "I'm sorry, I couldn't process your request. Please try again.",
+        content,
         responseTime,
-        wasDeflected: !result.needs_escalation,
-        revenueAttributed: this.calculateRevenueAttribution(result)
+        wasDeflected: true, // Assume most responses deflect from human support
+        revenueAttributed: 0
       };
 
     } catch (error) {
