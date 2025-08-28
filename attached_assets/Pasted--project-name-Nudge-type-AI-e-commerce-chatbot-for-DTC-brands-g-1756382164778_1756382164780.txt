@@ -1,0 +1,214 @@
+{
+  "project": {
+    "name": "Nudge",
+    "type": "AI e-commerce chatbot for DTC brands",
+    "goal": "Reduce support load and increase revenue via automated product Q&A, order support, and cart recovery with provable before/after results.",
+    "builder": "Quartermasters",
+    "team_lead": "Haroon Haider",
+    "audience": ["Shopify stores first; WooCommerce/Custom later"]
+  },
+  "proof_strategy": {
+    "demo_store": {
+      "platform": "Shopify dev store",
+      "seed_catalog": 24,
+      "scenarios": ["FAQ & policy deflection", "Product fit Q&A", "Order status", "Returns workflow", "Size/fit guide", "Cart abandonment → SMS/Email nudge"],
+      "public_demo": true
+    },
+    "baseline_capture": {
+      "window_days": 14,
+      "metrics": ["tickets_per_100_orders", "avg_first_response_time_sec", "conversion_rate", "add_to_cart_rate", "abandon_rate", "revenue_per_session"]
+    },
+    "post_install_capture": {
+      "window_days": 14,
+      "same_metrics": true,
+      "attribution": ["chat_assisted_conversions", "cart_recovery_conversions", "deflected_tickets"]
+    },
+    "case_study_generator": {
+      "inputs": ["baseline.csv", "post.csv", "event_log.json"],
+      "outputs": ["pdf", "png_charts"],
+      "sections": ["Brand context", "Setup & guardrails", "Before/After KPIs", "Deflection analysis", "Revenue impact", "Learnings"],
+      "export": {"pdf_template": "reports/case_study_template.md"}
+    }
+  },
+  "success_criteria": {
+    "deflection_rate_min": 0.35,
+    "cart_recovery_conv_min": 0.12,
+    "chat_assisted_revenue_uplift_min_pct": 8,
+    "csat_min": 0.85,
+    "p50_latency_ms_max": 900
+  },
+  "constraints": {
+    "privacy": ["No PCI in chat", "Mask emails/phones unless consented", "GDPR/TCPA-aware for SMS/email"],
+    "security": ["OAuth with Shopify", "Rotate API keys", "Role-based admin"],
+    "ux": ["First answer < 1s", "Mobile-first widget"]
+  },
+  "stack": {
+    "frontend_widget": "React micro-bundle + Tailwind (or vanilla JS)",
+    "backend": "Node.js (NestJS/Express) for APIs",
+    "ai_service": "Python FastAPI (LLM calls, RAG, policies)",
+    "db": "Postgres (JSONB for KB, events); Redis for cache/queues",
+    "queue": "BullMQ/Redis",
+    "observability": "OpenTelemetry + Prometheus + Grafana",
+    "hosting": "AWS (Fargate/Lambda) or Render/Fly.io",
+    "cdn": "Cloudflare"
+  },
+  "integrations": {
+    "shopify": {
+      "auth": "OAuth",
+      "webhooks": ["carts/update", "checkouts/create", "orders/create", "refunds/create"],
+      "admin_api": ["Products", "Orders", "Customers", "Checkouts", "Discounts"]
+    },
+    "messaging": {
+      "sms": "Twilio or MessageBird",
+      "email": "Klaviyo or SendGrid",
+      "templates": ["cart_recovery_15m", "cart_recovery_4h", "cart_recovery_24h"]
+    },
+    "analytics": ["GA4", "Shopify reports API"],
+    "helpdesk_optional": ["Gorgias", "Zendesk"]
+  },
+  "features": {
+    "chat_capabilities": [
+      "Product Q&A (variants, fit, materials, compatibility)",
+      "Order status lookup by email/order id",
+      "Returns/refunds policy guidance with links",
+      "Shipping/ETA calculator",
+      "Size finder (rules + brand chart)",
+      "Cross-sell/upsell with in-stock checks",
+      "Cart recovery: detect, capture consent, send SMS/email nudges",
+      "Human handoff to support (Gorgias/Zendesk) when confidence low"
+    ],
+    "admin_console": [
+      "FAQ/KB editor with versioning",
+      "Flows editor (cart recovery timings, templates, channel toggles)",
+      "Catalog sync dashboard (last indexed, errors)",
+      "Analytics: deflection, conversion, recovery, CSAT",
+      "A/B testing: widget copy, CTAs, nudge timing"
+    ],
+    "localization": {"default": "en", "languages": ["en","ar","fr","de"], "auto_detect": true}
+  },
+  "ai_design": {
+    "llm": "OpenAI GPT-4.x function calling (JSON mode)",
+    "retrieval": {
+      "sources": ["Shopify product data", "FAQ/Policies KB", "Size charts", "Shipping rules"],
+      "index": "pgvector/FAISS",
+      "refresh": {"full": "daily", "incremental": "via webhooks"}
+    },
+    "guardrails": [
+      "Never fabricate order details; only via API",
+      "Policies answered strictly from KB",
+      "No medical/financial claims",
+      "Escalate if low confidence or repeated failure"
+    ],
+    "prompting": {
+      "system": "You are Nudge, an e-commerce assistant. Be concise, helpful, conversion-minded. Use only provided data. If unsure, escalate.",
+      "tools": [
+        {"name":"get_product","args":{"sku_or_query":"string"}},
+        {"name":"get_order_status","args":{"email":"string","order_id":"string"}},
+        {"name":"get_policy","args":{"topic":"shipping|returns|warranty"}},
+        {"name":"recommend_products","args":{"product_id":"string","limit":"int"}}
+      ],
+      "style": {"max_words": 80, "tone": "smart, friendly, direct"}
+    }
+  },
+  "data_models": {
+    "kb_item": {"id":"string","type":"faq|policy|size","title":"string","body":"string","tags":["string"],"updated_at":"iso"},
+    "product_index": {"id":"string","title":"string","variants":[{"id":"string","sku":"string","attrs":"object","price":"number","in_stock":"bool"}],"embeddings":"vector"},
+    "chat_event": {"id":"uuid","session_id":"uuid","ts":"iso","intent":"string","latency_ms":"int","resolved":"bool","order_id":"string|null","value_attributed":"number"},
+    "recovery_event": {"id":"uuid","checkout_id":"string","channel":"sms|email","ts":"iso","delivered":"bool","clicked":"bool","converted":"bool","order_id":"string|null"}
+  },
+  "apis": {
+    "public": [
+      {"method":"POST","path":"/chat","auth":"store_pub_key","body":{"message":"string","session_id":"string","email_opt_in":"bool"}},
+      {"method":"POST","path":"/events/track","auth":"store_pub_key","body":{"type":"string","payload":"object"}}
+    ],
+    "admin": [
+      {"method":"POST","path":"/admin/kb","auth":"jwt","body":{"items":"array<kb_item>"}},
+      {"method":"POST","path":"/admin/flows","auth":"jwt","body":{"cart_recovery":"object"}},
+      {"method":"GET","path":"/admin/analytics","auth":"jwt","query":{"from":"iso","to":"iso"}}
+    ],
+    "webhooks": [
+      {"path":"/wh/shopify/carts_update"},
+      {"path":"/wh/shopify/checkouts_create"},
+      {"path":"/wh/shopify/orders_create"},
+      {"path":"/wh/shopify/refunds_create"}
+    ]
+  },
+  "analytics_kpis": [
+    "tickets_deflected = deflected / (deflected + escalated)",
+    "cart_recovery_conversion = conversions_from_nudges / nudges_sent",
+    "chat_assisted_revenue = sum(attributed_value)",
+    "latency_p50_p95_ms",
+    "csat (thumbs_up/downs in widget)"
+  },
+  "testing": {
+    "unit": [
+      "intent classification",
+      "policy-only answers",
+      "order lookup authorization",
+      "size guide mapping",
+      "nudge scheduling logic"
+    ],
+    "integration": [
+      "Shopify OAuth + webhooks",
+      "Catalog index refresh",
+      "Twilio/Klaviyo sends",
+      "GA4 event attribution"
+    ],
+    "e2e": [
+      "Browse → ask size → add to cart",
+      "Abandon → 15m SMS nudge → return → purchase",
+      "Order status via email + order id",
+      "Return policy question deflected without agent"
+    ],
+    "load": {"simultaneous_chats": 200, "p95_latency_ms_max": 1800, "error_rate_max_pct": 1}
+  },
+  "acceptance": [
+    "Deflection ≥ 35% on seeded FAQ set",
+    "Cart recovery conversion ≥ 12% on demo traffic",
+    "p50 latency ≤ 900ms; p95 ≤ 1800ms",
+    "Case study PDF generated with charts from baseline vs post",
+    "No hallucinated order data in audits"
+  },
+  "security_privacy": {
+    "pii": ["hash emails for attribution when possible", "store consent flags for SMS/email"],
+    "secrets": "env vault",
+    "logging": "redact PII in logs",
+    "compliance": ["GDPR export/delete endpoints", "TCPA consent for SMS"]
+  },
+  "build_steps": [
+    "Scaffold repos (frontend_widget, api_gateway, ai_service, ingest_worker, reports).",
+    "Implement Shopify OAuth + webhooks; persist checkouts/orders; unit tests.",
+    "Catalog indexer (pull products; build embeddings; vector search).",
+    "LLM tool functions: get_product, get_order_status, get_policy, recommend_products.",
+    "Chat pipeline: classify → retrieve → tool calls → compose → guardrails → respond.",
+    "Cart recovery engine: triggers (15m/4h/24h), channel picks, template variables, stop on opt-out.",
+    "Admin console: KB editor, flows config, analytics overview.",
+    "Event tracking: GA4 + internal events; attribution model for chat-assisted conversions.",
+    "Case study generator: ingest baseline/post, render PDF with charts.",
+    "Load & e2e tests; harden, dashboards, runbook."
+  ],
+  "repo_layout": {
+    "frontend_widget": ["index.html","widget.js","styles.css","sdk.js"],
+    "api_gateway": ["app.ts","routes/*.ts","auth/*.ts"],
+    "ai_service": ["main.py","routers/chat.py","rag/indexer.py","llm/tools.py","guardrails.py"],
+    "workers": ["recovery_worker.ts","indexer_worker.ts"],
+    "reports": ["generator.py","templates/case_study_template.md"],
+    "infra": [".env.example","docker-compose.yml","k8s/*","terraform/*"]
+  },
+  "env_vars": [
+    "SHOPIFY_CLIENT_ID","SHOPIFY_CLIENT_SECRET","SHOPIFY_SCOPES",
+    "OPENAI_API_KEY","GA4_MEASUREMENT_ID","GA4_API_SECRET",
+    "TWILIO_SID","TWILIO_TOKEN","KLAVIYO_API_KEY","SENDGRID_API_KEY",
+    "POSTGRES_URL","REDIS_URL","JWT_SECRET","ENCRYPTION_KEY"
+  ],
+  "demo_data": {
+    "brands": ["Acme Apparel","Glow Skin","GearBox"],
+    "sizes": ["XS","S","M","L","XL"],
+    "policies": ["shipping","returns","warranty"],
+    "templates": {
+      "sms_15m": "You left {{items}} in your cart. Complete your order: {{link}}",
+      "email_4h_subject": "Still thinking it over?",
+      "email_4h_body": "Your cart is waiting. Here’s a {{discount}} valid for 24h: {{code}}."
+    }
+  }
+}
