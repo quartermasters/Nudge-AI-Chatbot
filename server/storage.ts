@@ -34,6 +34,7 @@ export interface IStorage {
   // Conversation methods
   getConversations(storeId: string, limit?: number): Promise<Conversation[]>;
   getRecentConversations(storeId: string, limit: number): Promise<Conversation[]>;
+  getConversationBySession(sessionId: string): Promise<Conversation | undefined>;
   createConversation(conversation: InsertConversation): Promise<Conversation>;
   updateConversation(id: string, updates: Partial<Conversation>): Promise<Conversation>;
   
@@ -149,6 +150,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(conversations.storeId, storeId))
       .orderBy(desc(conversations.createdAt))
       .limit(limit);
+  }
+
+  async getConversationBySession(sessionId: string): Promise<Conversation | undefined> {
+    const [conversation] = await db.select().from(conversations)
+      .where(eq(conversations.sessionId, sessionId))
+      .orderBy(desc(conversations.createdAt))
+      .limit(1);
+    return conversation || undefined;
   }
 
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {

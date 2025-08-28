@@ -19,8 +19,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      // Get store info
-      const store = await storage.getStore(storeId);
+      // Get store info or create demo store
+      let store = await storage.getStore(storeId);
+      if (!store && storeId === 'demo-store') {
+        // Create demo store for widget testing
+        store = await storage.createStore({
+          shopifyDomain: 'demo.myshopify.com',
+          accessToken: 'demo-token',
+          name: 'Demo Store',
+          email: 'demo@example.com'
+        });
+      }
       if (!store) {
         return res.status(404).json({ error: "Store not found" });
       }
@@ -76,6 +85,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Chat widget error:", error);
       res.status(500).json({ error: "Failed to process message" });
+    }
+  });
+
+  // Get conversation history
+  app.get("/api/conversations/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const conversation = await storage.getConversationBySession(sessionId);
+      
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+      
+      res.json(conversation);
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+      res.status(500).json({ error: "Failed to fetch conversation" });
     }
   });
 

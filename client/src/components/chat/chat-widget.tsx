@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 interface Message {
@@ -13,6 +13,7 @@ interface Message {
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -21,17 +22,39 @@ export default function ChatWidget() {
     }
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [showEmailPrompt, setShowEmailPrompt] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Load conversation history
+  const { data: conversationHistory } = useQuery({
+    queryKey: ['/api/conversations', sessionId],
+    queryFn: () => fetch(`/api/conversations/${sessionId}`).then(res => res.ok ? res.json() : null),
+    enabled: isOpen && !!sessionId,
+    retry: false
+  });
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await fetch('/api/chat/message', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           message,
-          conversationId: 'widget-demo'
+          sessionId,
+          storeId: 'demo-store',
+          email: customerEmail || undefined
         })
       });
       
@@ -48,6 +71,11 @@ export default function ChatWidget() {
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, aiMessage]);
+      
+      // Show email prompt after 2nd user message if not collected
+      if (!customerEmail && messages.filter(m => m.role === 'user').length === 1) {
+        setTimeout(() => setShowEmailPrompt(true), 2000);
+      }
     },
     onError: () => {
       const errorMessage: Message = {
@@ -113,11 +141,50 @@ export default function ChatWidget() {
                     <i className="fas fa-robot text-primary-foreground text-xs"></i>
                   </div>
                 )}
-                <div className={`rounded-lg p-2 max-w-xs ${message.role === 'assistant' ? 'bg-muted' : 'bg-primary text-primary-foreground'}`} data-testid={`message-content-${index}`}>
-                  <p className="text-sm">{message.content}</p>
+                <div className={`rounded-lg p-3 max-w-xs ${message.role === 'assistant' ? 'bg-muted' : 'bg-primary text-primary-foreground'}`} data-testid={`message-content-${index}`}>
+                  <p className="text-sm leading-relaxed">{message.content}</p>
+                  <span className="text-xs opacity-60 mt-1 block">
+                    {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
               </div>
             ))}
+            
+            {/* Email Collection Prompt */}
+            {showEmailPrompt && !customerEmail && (
+              <div className="flex items-start space-x-2" data-testid="email-prompt">
+                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                  <i className="fas fa-robot text-primary-foreground text-xs"></i>
+                </div>
+                <div className="bg-muted rounded-lg p-3 max-w-xs">
+                  <p className="text-sm mb-2">I'd love to help you better! Could you share your email so I can provide personalized assistance?</p>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="email"
+                      placeholder="your@email.com"
+                      className="flex-1 text-xs h-8"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const email = (e.target as HTMLInputElement).value;
+                          if (email) {
+                            setCustomerEmail(email);
+                            setShowEmailPrompt(false);
+                          }
+                        }
+                      }}
+                    />
+                    <Button 
+                      size="sm" 
+                      className="h-8 text-xs"
+                      onClick={() => setShowEmailPrompt(false)}
+                    >
+                      Skip
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {sendMessageMutation.isPending && (
               <div className="flex items-start space-x-2" data-testid="typing-indicator">
                 <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
@@ -132,6 +199,7 @@ export default function ChatWidget() {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Chat Input */}
