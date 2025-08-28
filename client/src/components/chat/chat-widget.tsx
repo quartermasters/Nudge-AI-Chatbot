@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { MessageCircle, X, Send, Bot } from "lucide-react";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -109,7 +110,7 @@ export default function ChatWidget() {
         className="w-14 h-14 rounded-full shadow-lg"
         data-testid="chat-trigger"
       >
-        <i className="fas fa-comments text-xl"></i>
+        <MessageCircle className="w-6 h-6" />
       </Button>
 
       {/* Chat Widget Window */}
@@ -119,7 +120,7 @@ export default function ChatWidget() {
           <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between" data-testid="chat-header">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-primary-foreground rounded-full flex items-center justify-center">
-                <i className="fas fa-robot text-primary text-xs"></i>
+                <Bot className="w-4 h-4 text-primary" />
               </div>
               <span className="font-medium" data-testid="chat-title">Nudge Assistant</span>
             </div>
@@ -128,7 +129,7 @@ export default function ChatWidget() {
               className="text-primary-foreground hover:text-primary-foreground/80"
               data-testid="chat-close"
             >
-              <i className="fas fa-times"></i>
+              <X className="w-4 h-4" />
             </button>
           </div>
 
@@ -138,7 +139,7 @@ export default function ChatWidget() {
               <div key={index} className={`flex items-start space-x-2 ${message.role === 'user' ? 'justify-end' : ''}`} data-testid={`message-${index}`}>
                 {message.role === 'assistant' && (
                   <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                    <i className="fas fa-robot text-primary-foreground text-xs"></i>
+                    <Bot className="w-4 h-4 text-primary-foreground" />
                   </div>
                 )}
                 <div className={`rounded-lg p-3 max-w-xs ${message.role === 'assistant' ? 'bg-muted' : 'bg-primary text-primary-foreground'}`} data-testid={`message-content-${index}`}>
@@ -154,7 +155,7 @@ export default function ChatWidget() {
             {showEmailPrompt && !customerEmail && (
               <div className="flex items-start space-x-2" data-testid="email-prompt">
                 <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                  <i className="fas fa-robot text-primary-foreground text-xs"></i>
+                  <Bot className="w-4 h-4 text-primary-foreground" />
                 </div>
                 <div className="bg-muted rounded-lg p-3 max-w-xs">
                   <p className="text-sm mb-2">I'd love to help you better! Could you share your email so I can provide personalized assistance?</p>
@@ -188,7 +189,7 @@ export default function ChatWidget() {
             {sendMessageMutation.isPending && (
               <div className="flex items-start space-x-2" data-testid="typing-indicator">
                 <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                  <i className="fas fa-robot text-primary-foreground text-xs"></i>
+                  <Bot className="w-4 h-4 text-primary-foreground" />
                 </div>
                 <div className="bg-muted rounded-lg p-2">
                   <div className="flex space-x-1">
@@ -221,7 +222,7 @@ export default function ChatWidget() {
                 disabled={sendMessageMutation.isPending || !inputValue.trim()}
                 data-testid="chat-send"
               >
-                <i className="fas fa-paper-plane text-sm"></i>
+                <Send className="w-4 h-4" />
               </Button>
             </div>
           </div>

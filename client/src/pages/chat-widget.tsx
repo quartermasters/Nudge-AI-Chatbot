@@ -1,4 +1,5 @@
 import ChatWidget from "@/components/chat/chat-widget";
+import { Bot, Send } from "lucide-react";
 
 export default function ChatWidgetPage() {
   return (
@@ -60,7 +61,7 @@ export default function ChatWidgetPage() {
               {/* Simulated chat interface */}
               <div className="bg-primary text-primary-foreground p-3 rounded-t-lg flex items-center space-x-2">
                 <div className="w-6 h-6 bg-primary-foreground rounded-full flex items-center justify-center">
-                  <i className="fas fa-robot text-primary text-xs"></i>
+                  <Bot className="w-4 h-4 text-primary" />
                 </div>
                 <span className="font-medium text-sm">Nudge Assistant</span>
                 <div className="ml-auto flex items-center">
@@ -71,7 +72,7 @@ export default function ChatWidgetPage() {
               <div className="flex-1 p-3 space-y-2 bg-background rounded-b-lg border border-t-0">
                 <div className="flex items-start space-x-2">
                   <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                    <i className="fas fa-robot text-primary-foreground text-xs"></i>
+                    <Bot className="w-3 h-3 text-primary-foreground" />
                   </div>
                   <div className="bg-muted rounded-lg p-2 max-w-[200px]">
                     <p className="text-xs">Hi! I'm your AI shopping assistant Developed by Quartermasters. How can I help you today?</p>
@@ -84,7 +85,7 @@ export default function ChatWidgetPage() {
                 </div>
                 <div className="flex items-start space-x-2">
                   <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                    <i className="fas fa-robot text-primary-foreground text-xs"></i>
+                    <Bot className="w-3 h-3 text-primary-foreground" />
                   </div>
                   <div className="bg-muted rounded-lg p-2 max-w-[200px]">
                     <p className="text-xs">Yes! We have several wireless earbuds available. Would you like to see our top recommendations?</p>

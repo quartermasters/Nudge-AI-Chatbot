@@ -1,16 +1,26 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { 
+  BarChart3, 
+  MessageSquare, 
+  ShoppingCart, 
+  BookOpen, 
+  PieChart, 
+  Settings,
+  Brain,
+  Bot
+} from "lucide-react";
 
 export default function Sidebar() {
   const [location] = useLocation();
 
   const navigation = [
-    { name: "Dashboard", href: "/", icon: "fas fa-chart-line" },
-    { name: "Chat Widget", href: "/chat-widget", icon: "fas fa-comments" },
-    { name: "Cart Recovery", href: "/cart-recovery", icon: "fas fa-shopping-cart" },
-    { name: "Knowledge Base", href: "/knowledge-base", icon: "fas fa-book" },
-    { name: "Analytics", href: "/analytics", icon: "fas fa-chart-bar" },
-    { name: "Settings", href: "/settings", icon: "fas fa-cog" },
+    { name: "Dashboard", href: "/", icon: BarChart3 },
+    { name: "Chat Widget", href: "/chat-widget", icon: MessageSquare },
+    { name: "Cart Recovery", href: "/cart-recovery", icon: ShoppingCart },
+    { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
+    { name: "Analytics", href: "/analytics", icon: PieChart },
+    { name: "Settings", href: "/settings", icon: Settings },
   ];
 
   const integrations = [
@@ -24,8 +34,8 @@ export default function Sidebar() {
       {/* Header */}
       <div className="p-6 border-b border-border" data-testid="sidebar-header">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center" data-testid="logo">
-            <i className="fas fa-robot text-primary-foreground text-sm"></i>
+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-sm" data-testid="logo">
+            <Brain className="w-4 h-4 text-primary-foreground" />
           </div>
           <div>
             <h1 className="font-bold text-lg text-foreground" data-testid="app-name">Nudge</h1>
@@ -45,7 +55,7 @@ export default function Sidebar() {
                   ? "bg-primary text-primary-foreground"
                   : "text-foreground hover:bg-accent"
               )} data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}>
-                <i className={`${item.icon} w-4`}></i>
+                <item.icon className="w-4 h-4" />
                 <span>{item.name}</span>
               </div>
             </Link>

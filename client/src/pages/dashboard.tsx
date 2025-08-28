@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import MetricsGrid from "@/components/dashboard/metrics-grid";
 import ChartsSection from "@/components/dashboard/charts-section";
 import RecentActivity from "@/components/dashboard/recent-activity";
+import { Download, Plus } from "lucide-react";
 
 export default function Dashboard() {
   const { data: dashboardData, isLoading } = useQuery({
@@ -41,11 +42,11 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center space-x-3">
             <button className="inline-flex items-center px-4 py-2 border border-border rounded-md text-sm font-medium text-foreground bg-background hover:bg-accent" data-testid="button-export">
-              <i className="fas fa-download mr-2"></i>
+              <Download className="w-4 h-4 mr-2" />
               Export Report
             </button>
             <button className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90" data-testid="button-new-campaign">
-              <i className="fas fa-plus mr-2"></i>
+              <Plus className="w-4 h-4 mr-2" />
               New Campaign
             </button>
           </div>
