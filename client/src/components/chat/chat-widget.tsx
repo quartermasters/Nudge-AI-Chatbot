@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -20,6 +22,43 @@ export default function ChatWidget() {
   ]);
   const [inputValue, setInputValue] = useState('');
 
+  const sendMessageMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await fetch('/api/chat/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          conversationId: 'widget-demo'
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (response) => {
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: response.message,
+        timestamp: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    },
+    onError: () => {
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again later.",
+        timestamp: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+  });
+
   const sendMessage = () => {
     if (!inputValue.trim()) return;
 
@@ -30,17 +69,8 @@ export default function ChatWidget() {
     };
 
     setMessages(prev => [...prev, newMessage]);
+    sendMessageMutation.mutate(inputValue);
     setInputValue('');
-
-    // Simulate AI response
-    setTimeout(() => {
-      const response: Message = {
-        role: 'assistant',
-        content: "Thank you for your message. I'm processing your request and will respond shortly.",
-        timestamp: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, response]);
-    }, 1000);
   };
 
   return (
@@ -88,6 +118,20 @@ export default function ChatWidget() {
                 </div>
               </div>
             ))}
+            {sendMessageMutation.isPending && (
+              <div className="flex items-start space-x-2" data-testid="typing-indicator">
+                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                  <i className="fas fa-robot text-primary-foreground text-xs"></i>
+                </div>
+                <div className="bg-muted rounded-lg p-2">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Chat Input */}
@@ -98,11 +142,17 @@ export default function ChatWidget() {
                 placeholder="Ask about products, orders, or policies..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                onKeyPress={(e) => e.key === 'Enter' && !sendMessageMutation.isPending && sendMessage()}
                 className="flex-1 text-sm"
+                disabled={sendMessageMutation.isPending}
                 data-testid="chat-input"
               />
-              <Button onClick={sendMessage} size="sm" data-testid="chat-send">
+              <Button 
+                onClick={sendMessage} 
+                size="sm" 
+                disabled={sendMessageMutation.isPending || !inputValue.trim()}
+                data-testid="chat-send"
+              >
                 <i className="fas fa-paper-plane text-sm"></i>
               </Button>
             </div>

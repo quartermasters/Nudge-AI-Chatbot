@@ -56,14 +56,51 @@ export default function ChatWidgetPage() {
           {/* Widget Preview */}
           <div className="bg-card rounded-lg border border-border p-6" data-testid="widget-preview">
             <h3 className="text-lg font-semibold text-foreground mb-4">Preview</h3>
-            <div className="bg-muted rounded-lg p-4 h-80 relative">
-              <p className="text-sm text-muted-foreground text-center mt-32">
-                Widget preview appears here
-              </p>
-              <div className="text-center mt-4">
-                <button className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
-                  <i className="fas fa-comments"></i>
-                </button>
+            <div className="bg-muted rounded-lg p-4 h-80 relative overflow-hidden flex flex-col">
+              {/* Simulated chat interface */}
+              <div className="bg-primary text-primary-foreground p-3 rounded-t-lg flex items-center space-x-2">
+                <div className="w-6 h-6 bg-primary-foreground rounded-full flex items-center justify-center">
+                  <i className="fas fa-robot text-primary text-xs"></i>
+                </div>
+                <span className="font-medium text-sm">Nudge Assistant</span>
+                <div className="ml-auto flex items-center">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
+                  <span className="text-xs opacity-90">Online</span>
+                </div>
+              </div>
+              <div className="flex-1 p-3 space-y-2 bg-background rounded-b-lg border border-t-0">
+                <div className="flex items-start space-x-2">
+                  <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                    <i className="fas fa-robot text-primary-foreground text-xs"></i>
+                  </div>
+                  <div className="bg-muted rounded-lg p-2 max-w-[200px]">
+                    <p className="text-xs">Hi! I'm your AI shopping assistant. How can I help you today?</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2 justify-end">
+                  <div className="bg-primary text-primary-foreground rounded-lg p-2 max-w-[180px]">
+                    <p className="text-xs">Do you have wireless earbuds?</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                    <i className="fas fa-robot text-primary-foreground text-xs"></i>
+                  </div>
+                  <div className="bg-muted rounded-lg p-2 max-w-[200px]">
+                    <p className="text-xs">Yes! We have several wireless earbuds available. Would you like to see our top recommendations?</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex space-x-2">
+                  <input 
+                    type="text" 
+                    placeholder="Type your message..." 
+                    className="flex-1 text-xs px-2 py-1 border rounded-md"
+                    disabled
+                  />
+                  <button className="px-2 py-1 bg-primary text-primary-foreground rounded-md text-xs">
+                    <i className="fas fa-paper-plane"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
